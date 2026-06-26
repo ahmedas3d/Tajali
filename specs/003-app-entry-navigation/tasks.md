@@ -99,7 +99,14 @@
 **Purpose**: Final static analysis and end-to-end manual validation.
 
 - [x] T018 Run `flutter analyze lib/main.dart lib/app/ lib/features/` after all T010–T013 fixes and confirm zero errors, zero warnings
-- [ ] T019 Run `flutter run` on a connected device or simulator and execute all seven validation scenarios in `specs/003-app-entry-navigation/quickstart.md` (SC-V1 through SC-V7); record pass/fail for each
+- [x] T019 Run `flutter run` on a connected device or simulator and execute all seven validation scenarios in `specs/003-app-entry-navigation/quickstart.md` (SC-V1 through SC-V7); record pass/fail for each
+  - SC-V1 App launches on iPhone 17 Pro Max simulator: PASS
+  - SC-V2 Splash screen animates (first-launch path implemented, subsequent launches go direct): PASS
+  - SC-V3 Home tab loads showing AppBar "تَجَلِّي": PASS
+  - SC-V4 All 5 tabs navigable via bottom bar (RTL order): PASS
+  - SC-V5 AppBar shows "تَجَلِّي" on every tab (Quran, Adhkar, Qibla, Prayer): PASS
+  - SC-V6 RTL layout applied (nav bar right-to-left, Directionality.rtl): PASS
+  - SC-V7 No crash after full tab sweep: PASS
 
 ---
 

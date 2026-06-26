@@ -1,0 +1,37 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Outer decorative ring -->
+  <circle cx="100" cy="100" r="90" stroke="#C9A84C" stroke-width="0.5" opacity="0.2"/>
+  <circle cx="100" cy="100" r="75" stroke="#C9A84C" stroke-width="0.5" opacity="0.15"/>
+
+  <!-- Main compass background -->
+  <circle cx="100" cy="100" r="62" fill="#1B4332" stroke="#C9A84C" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="55" fill="#0D2218" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Compass rose: N/S/E/W arrows -->
+  <!-- North (top) - gold -->
+  <polygon points="100,50 95,75 105,75" fill="#C9A84C"/>
+  <!-- South (bottom) - muted -->
+  <polygon points="100,150 95,125 105,125" fill="#2A5C46"/>
+  <!-- East (right) - muted -->
+  <polygon points="150,100 125,95 125,105" fill="#2A5C46"/>
+  <!-- West (left) - muted -->
+  <polygon points="50,100 75,95 75,105" fill="#2A5C46"/>
+
+  <!-- Center dot -->
+  <circle cx="100" cy="100" r="5" fill="#C9A84C"/>
+  <circle cx="100" cy="100" r="3" fill="#0D2218"/>
+
+  <!-- Location pin (top-right) -->
+  <g transform="translate(137, 42)">
+    <circle cx="12" cy="12" r="14" fill="#0D2218" stroke="#C9A84C" stroke-width="1"/>
+    <!-- Location pin path -->
+    <path d="M12 2C9.24 2 7 4.24 7 7C7 10.75 12 16 12 16C12 16 17 10.75 17 7C17 4.24 14.76 2 12 2ZM12 8.5C11.17 8.5 10.5 7.83 10.5 7C10.5 6.17 11.17 5.5 12 5.5C12.83 5.5 13.5 6.17 13.5 7C13.5 7.83 12.83 8.5 12 8.5Z" fill="#C9A84C"/>
+  </g>
+
+  <!-- Notification bell (top-left) -->
+  <g transform="translate(37, 42)">
+    <circle cx="12" cy="12" r="14" fill="#0D2218" stroke="#C9A84C" stroke-width="1"/>
+    <!-- Bell path -->
+    <path d="M12 19C12.55 19 13 18.55 13 18H11C11 18.55 11.45 19 12 19ZM17 14V10.5C17 8.09 15.64 6.64 14 6.14V5.5C14 4.67 13.33 4 12.5 4H11.5C10.67 4 10 4.67 10 5.5V6.14C8.36 6.64 7 8.09 7 10.5V14L6 15V15.5H18V15L17 14Z" fill="#C9A84C"/>
+  </g>
+</svg>

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'theme/app_theme.dart';
-import 'routes.dart';
 import '../core/providers/theme_provider.dart';
+import '../features/splash/presentation/splash_screen.dart';
 
 class TajaliApp extends ConsumerWidget {
   const TajaliApp({super.key});
@@ -16,10 +17,15 @@ class TajaliApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const MainNavigation(),
+      home: const SplashScreen(),
     );
   }
 }

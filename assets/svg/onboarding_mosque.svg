@@ -1,0 +1,56 @@
+<svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Left minaret body -->
+  <svg x="55" y="80" width="12" height="200" viewBox="0 0 12 200">
+    <path d="M0 0H12V200H0V0" fill="#2A5C46"/>
+  </svg>
+  <!-- Left minaret cap -->
+  <svg x="55" y="65" width="12" height="15" viewBox="0 0 12.6014 15.9231">
+    <path d="M0.232 15.673L6.232 0.673L12.232 15.673H0.232Z" fill="#2A5C46" stroke="#C9A84C" stroke-width="0.5"/>
+  </svg>
+  <circle cx="61" cy="62" r="1.5" fill="#C9A84C"/>
+
+  <!-- Right minaret body -->
+  <svg x="273" y="80" width="12" height="200" viewBox="0 0 12 200">
+    <path d="M0 0H12V200H0V0" fill="#2A5C46"/>
+  </svg>
+  <!-- Right minaret cap -->
+  <svg x="273" y="65" width="12" height="15" viewBox="0 0 12.6014 15.9231">
+    <path d="M0.232 15.673L6.232 0.673L12.232 15.673H0.232Z" fill="#2A5C46" stroke="#C9A84C" stroke-width="0.5"/>
+  </svg>
+  <circle cx="279" cy="62" r="1.5" fill="#C9A84C"/>
+
+  <!-- Mosque dome -->
+  <svg x="80" y="40" width="180" height="100" viewBox="0 0 180.5 100.5">
+    <path d="M90.25 0.25C140.25 0.25 180.25 40.25 180.25 100.25H0.25C0.25 40.25 40.25 0.25 90.25 0.25Z" fill="#2A5C46" stroke="#C9A84C" stroke-width="0.5"/>
+  </svg>
+
+  <!-- Dome separator line -->
+  <svg x="80" y="135" width="180" height="5.5" viewBox="0 0 180.12 5.49253">
+    <path opacity="0.4" d="M0 5.25C0 5.25 20 0.25 90 0.25C160 0.25 180 5.25 180 5.25" stroke="#C9A84C" stroke-width="0.5"/>
+  </svg>
+
+  <!-- Mosque base building -->
+  <svg x="40" y="140" width="260" height="140" viewBox="0 0 260 140">
+    <path d="M0 140H260V60C260 60 260 0 130 0C0 0 0 60 0 60V140Z" fill="#2A5C46"/>
+  </svg>
+
+  <!-- Center door -->
+  <svg x="160" y="190" width="20" height="50" viewBox="0 0 20 50">
+    <path d="M0 20C0 20 0 0 10 0C20 0 20 20 20 20V50H0V20Z" fill="#755B00"/>
+  </svg>
+  <!-- Left arch window -->
+  <svg x="110" y="220" width="10" height="20" viewBox="0 0 10 20">
+    <path d="M5 0C7.76 0 10 2.24 10 5V15C10 17.76 7.76 20 5 20C2.24 20 0 17.76 0 15V5C0 2.24 2.24 0 5 0Z" fill="#755B00"/>
+  </svg>
+  <!-- Right arch window -->
+  <svg x="220" y="220" width="10" height="20" viewBox="0 0 10 20">
+    <path d="M5 0C7.76 0 10 2.24 10 5V15C10 17.76 7.76 20 5 20C2.24 20 0 17.76 0 15V5C0 2.24 2.24 0 5 0Z" fill="#755B00"/>
+  </svg>
+
+  <!-- Finial arc -->
+  <svg x="167.6" y="26.2" width="6.72" height="2.23" viewBox="0 0 6.71564 2.23358">
+    <path d="M0.416 1.834C0.416 1.834 2.416 -1.166 6.416 1.834" stroke="#C9A84C" stroke-width="0.8"/>
+  </svg>
+  <!-- Crescent ball -->
+  <circle cx="170" cy="33" r="2" fill="#C9A84C"/>
+</svg>
