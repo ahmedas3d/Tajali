@@ -30,12 +30,14 @@ dependencies:
 
   # Prayer Times
   adhan: ^2.0.0+1
+  dio: ^5.4.3
 
   # Audio
   just_audio: ^0.9.38
 
   # Notifications
   flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
 
   # UI Extras
   flutter_svg: ^2.0.10+1

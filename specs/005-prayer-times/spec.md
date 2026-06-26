@@ -70,9 +70,9 @@ A user who follows a specific juristic school (e.g., Hanafi, Muslim World League
 
 **Acceptance Scenarios**:
 
-1. **Given** the user is on the Prayer Times screen or settings, **When** they select a different calculation method, **Then** the prayer times immediately update to reflect the new method.
-2. **Given** the user has changed the calculation method, **When** they close and reopen the app, **Then** the previously selected method is remembered and applied.
-3. **Given** multiple calculation methods are available, **When** the user opens the method selector, **Then** at least the following methods are listed: Egyptian General Authority (default), Muslim World League, Umm Al-Qura, ISNA, and Karachi/Hanafi.
+1. **Given** the user navigates to the Settings screen, **When** they select a different calculation method, **Then** the prayer times immediately update to reflect the new method when they return to the Prayer Times screen.
+2. **Given** the user has changed the calculation method in Settings, **When** they close and reopen the app, **Then** the previously selected method is remembered and applied.
+3. **Given** multiple calculation methods are available, **When** the user opens the calculation method list in Settings, **Then** at least the following methods are listed: Egyptian General Authority (default), Muslim World League, Umm Al-Qura, ISNA, and Karachi/Hanafi.
 
 ---
 
@@ -103,31 +103,42 @@ A user who denied location permission during onboarding, or whose location canno
 
 ---
 
+## Clarifications
+
+### Session 2026-06-26
+
+- Q: Should prayer times be displayed in 12-hour or 24-hour format? → A: 12-hour fixed with Arabic AM/PM indicators (e.g., 4:12 ص / 3:48 م) — no user toggle in Phase 1.
+- Q: Where does the calculation method selector live in the UI? → A: A dedicated Settings screen reachable from the main navigation.
+- Q: What data does the home screen prayer card display? → A: Next prayer name (Arabic), its time (12-hour with Arabic AM/PM), and the live countdown — no other prayer slots.
+- Q: Should the Asr school (Standard vs. Hanafi) be a separate toggle from the calculation method? → A: No — Asr school is implicit in the selected calculation method; no separate toggle in Phase 1.
+
+---
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST display the five daily prayer times (Fajr, Dhuhr, Asr, Maghrib, Isha) plus Sunrise (الشروق) and Imsak for the user's current date and GPS location.
+- **FR-001**: The system MUST display the five daily prayer times (Fajr, Dhuhr, Asr, Maghrib, Isha) plus Sunrise (الشروق) and Imsak for the user's current date and GPS location. All times MUST be formatted in 12-hour notation with Arabic AM/PM indicators (ص for morning, م for afternoon/evening); no user-facing format toggle is required in Phase 1.
 - **FR-002**: The system MUST display the current Hijri calendar date alongside the Gregorian date on the prayer times screen.
 - **FR-003**: The system MUST show a live countdown timer to the next upcoming prayer, updated every minute.
 - **FR-004**: The system MUST visually distinguish the next/current prayer from the remaining prayer time entries.
 - **FR-005**: The system MUST cache today's prayer times locally so they are available when the device is offline.
 - **FR-006**: The system MUST display a "last updated" timestamp when showing cached (offline) data.
-- **FR-007**: The system MUST support at least five prayer time calculation methods selectable by the user, defaulting to the Egyptian General Authority of Survey method.
+- **FR-007**: The system MUST support at least five prayer time calculation methods selectable by the user via a dedicated Settings screen reachable from the main navigation, defaulting to the Egyptian General Authority of Survey method.
 - **FR-008**: The system MUST persist the user's chosen calculation method across app restarts.
 - **FR-009**: The system MUST automatically refresh prayer times when the date changes (midnight rollover) or when the app returns to the foreground on a new day.
 - **FR-010**: When location permission is denied, the system MUST offer a manual city entry/search fallback so prayer times can still be calculated.
 - **FR-011**: The system MUST cache the user's last known location and use it as a fallback when a fresh GPS fix cannot be obtained within a reasonable timeout.
 - **FR-012**: When an API error occurs, the system MUST show cached data (if available) with a non-blocking error banner rather than an empty or broken screen.
 - **FR-013**: All text and labels on the prayer times screen MUST be displayed in Arabic (RTL layout).
-- **FR-014**: The prayer times screen widget data MUST be accessible as a reusable card component for embedding on the home screen.
+- **FR-014**: The prayer times feature MUST expose a reusable card component for the home screen that displays only the next prayer's Arabic name, its scheduled time (12-hour with Arabic AM/PM), and the live countdown — no other prayer slots.
 
 ### Key Entities
 
 - **Prayer Times Record**: Represents a complete set of prayer times for a specific date, location, and calculation method. Includes time values for Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha, and Imsak. Tied to a geographic coordinate and a calculation method identifier.
 - **Hijri Date**: Represents the Islamic calendar equivalent of a Gregorian date. Includes day number, month name in Arabic, and year.
 - **Next Prayer**: A derived view of the nearest upcoming prayer relative to the current time. Includes the prayer name (in Arabic), its scheduled time, and the duration remaining until it occurs.
-- **Calculation Method**: Represents a named juristic authority's formula for computing prayer times. Has an identifier, a human-readable Arabic name, and an associated school of thought (Asr convention: Standard vs. Hanafi).
+- **Calculation Method**: Represents a named juristic authority's formula for computing prayer times. Has an identifier and a human-readable Arabic name. The Asr convention (Standard vs. Hanafi) is implicit in the method — there is no separate school toggle.
 - **Cached Location**: The most recently resolved GPS coordinate, stored locally to use when a fresh location fix is unavailable.
 
 ---
@@ -142,7 +153,7 @@ A user who denied location permission during onboarding, or whose location canno
 - **SC-004**: Users can switch calculation methods and see updated prayer times in under 2 seconds.
 - **SC-005**: Users who deny location permission are presented with a functional city-search fallback within one interaction step; prayer times load successfully after city selection.
 - **SC-006**: On a new calendar day, updated prayer times are shown without the user needing to manually refresh.
-- **SC-007**: The prayer times card/component renders correctly when embedded in the home screen without additional network calls if data is already cached.
+- **SC-007**: The home screen prayer card renders the next prayer name, time, and countdown correctly without additional network calls when prayer data is already cached.
 
 ---
 
@@ -157,3 +168,5 @@ A user who denied location permission during onboarding, or whose location canno
 - The home screen prayer card is a read-only widget that consumes the same data as the full Prayer Times screen; it does not have its own data-fetching logic.
 - "Today's" prayer times expire at midnight device-local time; cross-midnight edge cases (e.g., Isha near midnight) are handled by always displaying the times for the current calendar date.
 - Manual city search results are provided by a built-in curated list of major cities; a live geocoding API search is not required for this phase.
+- A Settings screen is introduced in this phase as the home for the calculation method selector; it is accessible from the main navigation and may be extended by future phases for additional settings.
+- The Asr prayer convention (Standard / Hanafi) is implicit in the selected calculation method (e.g., Karachi method implies Hanafi Asr). No separate school-of-thought toggle is provided in Phase 1.

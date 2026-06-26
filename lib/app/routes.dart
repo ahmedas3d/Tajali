@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tajali/app/theme/app_colors.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/quran/presentation/quran_screen.dart';
 import '../features/adhkar/presentation/adhkar_screen.dart';
@@ -31,8 +32,10 @@ class MainNavigation extends ConsumerWidget {
           children: _screens,
         ),
         bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: AppColors.primaryGreen,
           currentIndex: selectedIndex,
-          onTap: (index) => ref.read(selectedTabProvider.notifier).state = index,
+          onTap: (index) =>
+              ref.read(selectedTabProvider.notifier).state = index,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -45,8 +48,8 @@ class MainNavigation extends ConsumerWidget {
               label: 'القرآن',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.self_improvement_outlined),
-              activeIcon: Icon(Icons.self_improvement),
+              icon: Icon(Icons.auto_awesome_outlined),
+              activeIcon: Icon(Icons.auto_awesome_rounded),
               label: 'الأذكار',
             ),
             BottomNavigationBarItem(
@@ -55,8 +58,8 @@ class MainNavigation extends ConsumerWidget {
               label: 'القبلة',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.access_time_outlined),
-              activeIcon: Icon(Icons.access_time),
+              icon: Icon(Icons.synagogue_outlined),
+              activeIcon: Icon(Icons.synagogue_rounded),
               label: 'الصلاة',
             ),
           ],

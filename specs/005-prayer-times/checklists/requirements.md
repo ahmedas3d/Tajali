@@ -31,4 +31,4 @@
 
 ## Notes
 
-All items pass. Spec is ready for `/speckit-clarify` or `/speckit-plan`.
+All items pass. Clarification session 2026-06-26 resolved 4 ambiguities (time format, method selector placement, home card content, Asr school). Spec is ready for `/speckit-plan`.

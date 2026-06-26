@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tajali/app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 
 class AdhkarScreen extends StatelessWidget {
@@ -8,7 +9,8 @@ class AdhkarScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تَجَلِّي'),
+        title: Text('تَجَلِّي',
+            style: AppTextStyles.heading1.copyWith(color: AppColors.gold)),
       ),
       body: const Center(
         child: Text(

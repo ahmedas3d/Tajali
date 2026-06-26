@@ -205,7 +205,13 @@ class _Slide1 extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(slide.illustrationAsset, height: 320),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    child: Image.asset(
+                      slide.illustrationAsset,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   Text(
                     slide.title,
@@ -322,7 +328,13 @@ class _Slide2 extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(slide.illustrationAsset, height: 320),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    child: Image.asset(
+                      slide.illustrationAsset,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   Text(
                     slide.title,
@@ -431,7 +443,7 @@ class _Slide3 extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentPage = ref.watch(onboardingPageProvider);
-    final locState = ref.watch(locationPermissionProvider);
+    ref.watch(locationPermissionProvider); // rebuild when permission changes
     final notifState = ref.watch(notificationPermissionProvider);
 
     return SafeArea(
@@ -446,7 +458,13 @@ class _Slide3 extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(slide.illustrationAsset, height: 320),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    child: Image.asset(
+                      slide.illustrationAsset,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   Text(
                     slide.title,
@@ -470,12 +488,6 @@ class _Slide3 extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  PermissionCardWidget(
-                    type: PermissionType.location,
-                    state: locState,
-                    onTap: () => onPermissionTap(PermissionType.location),
-                  ),
-                  const SizedBox(height: 12),
                   PermissionCardWidget(
                     type: PermissionType.notification,
                     state: notifState,

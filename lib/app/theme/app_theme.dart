@@ -6,6 +6,21 @@ import 'app_text_styles.dart';
 class AppTheme {
   AppTheme._();
 
+  // Applies Amiri to every one of the 13 Material3 text roles.
+  static TextTheme _amiriTextTheme(Brightness brightness) {
+    final base = brightness == Brightness.light
+        ? Typography.material2021().black
+        : Typography.material2021().white;
+    return base.apply(fontFamily: AppFonts.amiri).copyWith(
+          displayLarge: AppTextStyles.heading1,
+          displayMedium: AppTextStyles.heading2,
+          displaySmall: AppTextStyles.heading3,
+          bodyLarge: AppTextStyles.body,
+          bodySmall: AppTextStyles.bodySmall,
+          labelLarge: AppTextStyles.goldLabel,
+        );
+  }
+
   static ThemeData get lightTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -57,14 +72,7 @@ class AppTheme {
           type: BottomNavigationBarType.fixed,
           elevation: 8,
         ),
-        textTheme: const TextTheme(
-          displayLarge: AppTextStyles.heading1,
-          displayMedium: AppTextStyles.heading2,
-          displaySmall: AppTextStyles.heading3,
-          bodyLarge: AppTextStyles.body,
-          bodySmall: AppTextStyles.bodySmall,
-          labelLarge: AppTextStyles.goldLabel,
-        ),
+        textTheme: _amiriTextTheme(Brightness.light),
       );
 
   static ThemeData get darkTheme => ThemeData(
@@ -109,5 +117,6 @@ class AppTheme {
           unselectedItemColor: AppColors.navInactive,
           type: BottomNavigationBarType.fixed,
         ),
+        textTheme: _amiriTextTheme(Brightness.dark),
       );
 }

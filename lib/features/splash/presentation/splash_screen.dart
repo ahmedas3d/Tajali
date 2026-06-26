@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tajali/app/theme/app_colors.dart';
+import 'package:tajali/app/theme/app_text_styles.dart';
 import '../data/services/onboarding_service.dart';
 import '../../../app/routes.dart';
 import 'onboarding_screen.dart';
@@ -108,8 +110,10 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               // Arabesque bands
-              const Positioned(top: 72, left: 0, right: 0, child: _ArabesqueLine()),
-              const Positioned(bottom: 72, left: 0, right: 0, child: _ArabesqueLine()),
+              const Positioned(
+                  top: 72, left: 0, right: 0, child: _ArabesqueLine()),
+              const Positioned(
+                  bottom: 72, left: 0, right: 0, child: _ArabesqueLine()),
               // Central animated composition
               Center(
                 child: FadeTransition(
@@ -128,14 +132,11 @@ class _SplashScreenState extends State<SplashScreen>
                             end: Alignment.bottomCenter,
                             colors: [_goldLight, _gold],
                           ).createShader(bounds),
-                          child: const Text(
-                            'تجلي',
-                            style: TextStyle(
-                              fontFamily: 'Amiri',
-                              fontSize: 44,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.white,
-                              letterSpacing: 4,
+                          child: Text(
+                            'تَجَلِّي',
+                            style: AppTextStyles.heading1.copyWith(
+                              color: AppColors.gold,
+                              fontSize: 36,
                             ),
                           ),
                         ),
@@ -299,7 +300,16 @@ class _HaloRing extends StatelessWidget {
               ),
             ),
           ),
-          for (final angle in [0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0])
+          for (final angle in [
+            0.0,
+            45.0,
+            90.0,
+            135.0,
+            180.0,
+            225.0,
+            270.0,
+            315.0
+          ])
             _DiamondPoint(angleDeg: angle, radius: diamondRadius),
         ],
       ),
@@ -365,7 +375,9 @@ class _OrnamentalDivider extends StatelessWidget {
       height: 1,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: end == Alignment.centerRight ? Alignment.centerLeft : Alignment.centerRight,
+          begin: end == Alignment.centerRight
+              ? Alignment.centerLeft
+              : Alignment.centerRight,
           end: end,
           colors: const [Color(0x00C9A84C), Color(0xFFC9A84C)],
         ),
@@ -386,7 +398,8 @@ class _ArabesqueLine extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 24),
-          Expanded(child: Container(height: 0.5, color: const Color(0xFFC9A84C))),
+          Expanded(
+              child: Container(height: 0.5, color: const Color(0xFFC9A84C))),
           const SizedBox(width: 10),
           _diamond(),
           const SizedBox(width: 8),
@@ -394,7 +407,8 @@ class _ArabesqueLine extends StatelessWidget {
           const SizedBox(width: 8),
           _diamond(),
           const SizedBox(width: 10),
-          Expanded(child: Container(height: 0.5, color: const Color(0xFFC9A84C))),
+          Expanded(
+              child: Container(height: 0.5, color: const Color(0xFFC9A84C))),
           const SizedBox(width: 24),
         ],
       ),
@@ -404,7 +418,8 @@ class _ArabesqueLine extends StatelessWidget {
   Widget _diamond({double size = 7}) {
     return Transform.rotate(
       angle: 3.14159265 / 4,
-      child: Container(width: size, height: size, color: const Color(0xFFC9A84C)),
+      child:
+          Container(width: size, height: size, color: const Color(0xFFC9A84C)),
     );
   }
 }
