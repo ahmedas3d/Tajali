@@ -16,7 +16,12 @@ class PrayerHeroCard extends ConsumerWidget {
     final nextAsync = ref.watch(nextPrayerProvider);
     final progressAsync = ref.watch(prayerProgressProvider);
     final hijriAsync = ref.watch(hijriDateProvider);
+    final qiyamAsync = ref.watch(qiyamTimeProvider);
     final city = ref.watch(manualCityProvider);
+
+    final qiyamStr = qiyamAsync.whenOrNull(
+      data: (dt) => dt != null ? TimeFormatter.toArabic12h(dt) : null,
+    );
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -58,6 +63,7 @@ class PrayerHeroCard extends ConsumerWidget {
                   times: times,
                   nextAsync: nextAsync,
                   progressAsync: progressAsync,
+                  qiyamTime: qiyamStr,
                   hijriText: hijriAsync.when(
                     data: (h) =>
                         '${TimeFormatter.toIndicDigits(h.day.toString())} ${h.monthAr} ${TimeFormatter.toIndicDigits(h.year.toString())} هـ',
@@ -84,6 +90,7 @@ class _CardContent extends StatelessWidget {
     required this.progressAsync,
     required this.hijriText,
     required this.city,
+    this.qiyamTime,
   });
 
   final PrayerTimesModel times;
@@ -91,30 +98,23 @@ class _CardContent extends StatelessWidget {
   final AsyncValue<double> progressAsync;
   final String hijriText;
   final ManualCityEntry? city;
-
-  static const _fardPrayers = [
-    ('الفجر', 'fajr'),
-    ('الظهر', 'dhuhr'),
-    ('العصر', 'asr'),
-    ('المغرب', 'maghrib'),
-    ('العشاء', 'isha'),
-  ];
-
-  String _timeFor(String key) {
-    switch (key) {
-      case 'fajr':    return times.fajr;
-      case 'dhuhr':   return times.dhuhr;
-      case 'asr':     return times.asr;
-      case 'maghrib': return times.maghrib;
-      default:        return times.isha;
-    }
-  }
+  final String? qiyamTime;
 
   @override
   Widget build(BuildContext context) {
     final next = nextAsync.valueOrNull;
     final progress = progressAsync.valueOrNull ?? 0.0;
     final nextKey = next?.name.toLowerCase();
+
+    // Row 1: Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha
+    final row1 = [
+      ('الفجر', times.fajr, 'fajr'),
+      ('الشروق', times.sunrise, 'sunrise'),
+      ('الظهر', times.dhuhr, 'dhuhr'),
+      ('العصر', times.asr, 'asr'),
+      ('المغرب', times.maghrib, 'maghrib'),
+      ('العشاء', times.isha, 'isha'),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -148,10 +148,8 @@ class _CardContent extends StatelessWidget {
               ),
             ),
             if (city != null) ...[
-              const Text(
-                '  •  ',
-                style: TextStyle(fontSize: 10, color: AppColors.navInactive),
-              ),
+              const Text('  •  ',
+                  style: TextStyle(fontSize: 10, color: AppColors.navInactive)),
               const Icon(Icons.location_on_outlined,
                   size: 12, color: AppColors.navInactive),
               const SizedBox(width: 2),
@@ -195,19 +193,31 @@ class _CardContent extends StatelessWidget {
         // Progress bar
         _ProgressBar(progress: progress),
 
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
 
-        // 5 fard prayers row
+        // Row 1: 6 prayers (Fajr → Isha + Sunrise)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _fardPrayers.map((p) {
+          children: row1.map((p) {
             return _PrayerChip(
               nameAr: p.$1,
-              time: _timeFor(p.$2),
-              isNext: nextKey == p.$2,
+              time: p.$2,
+              isNext: nextKey == p.$3,
             );
           }).toList(),
         ),
+
+        // Row 2: Qiyam al-Layl (centered, only when available)
+        if (qiyamTime != null) ...[
+          const SizedBox(height: 8),
+          const _GoldDivider(),
+          // const SizedBox(height: 8),
+          // _PrayerChip(
+          //   nameAr: 'قيام الليل',
+          //   time: qiyamTime!,
+          //   isNext: nextKey == 'qiyam',
+          // ),
+        ],
       ],
     );
   }

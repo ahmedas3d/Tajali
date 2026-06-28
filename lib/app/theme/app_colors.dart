@@ -44,4 +44,11 @@ class AppColors {
 
   // Dark nav bar base (deeper than navBackground for layering)
   static const Color darkNavBarBackground = Color(0xFF0A0A05);
+
+  // Mushaf reader theme
+  static const Color mushafTeal = Color(0xFF0F5350);
+  static const Color mushafTilePattern = Color(0xFFE8C97A);
+  static const Color mushafBannerCenter = Color(0xFF3D1F00);
+  static const Color mushafText = Color(0xFF1C0A00);
+  static const Color mushafBasmalaLine = Color(0xFF8B6B1A);
 }

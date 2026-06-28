@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +6,7 @@ import 'package:tajali/features/quran/data/models/surah_model.dart';
 import 'package:tajali/features/quran/data/services/bookmark_service.dart';
 import 'package:tajali/features/quran/presentation/quran_screen.dart';
 import 'package:tajali/features/quran/providers/quran_providers.dart';
+import 'package:tajali/features/quran/providers/reader_providers.dart';
 
 final _fakeSurahs = List.generate(
   5,
@@ -25,6 +27,8 @@ Widget _buildScreen({List<Override> overrides = const []}) {
             _NoOpBookmarkService(),
           )),
       lastReadProvider.overrideWith((_) async => null),
+      ayahBookmarksProvider.overrideWith(
+          (_) => AyahBookmarksNotifier.withInitial([])),
       ...overrides,
     ],
     child: const MaterialApp(
@@ -79,14 +83,17 @@ void main() {
   });
 
   testWidgets('shows skeleton cards while loading', (tester) async {
+    // Use a Completer that never completes — no pending timer left after dispose.
+    final completer = Completer<List<SurahModel>>();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          surahListProvider.overrideWith(
-              (_) => Future.delayed(const Duration(seconds: 5), () => [])),
+          surahListProvider.overrideWith((_) => completer.future),
           bookmarksProvider.overrideWith(
               (_) => BookmarksNotifier(_NoOpBookmarkService())),
           lastReadProvider.overrideWith((_) async => null),
+          ayahBookmarksProvider.overrideWith(
+              (_) => AyahBookmarksNotifier.withInitial([])),
         ],
         child: const MaterialApp(home: QuranScreen()),
       ),

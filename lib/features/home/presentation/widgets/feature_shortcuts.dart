@@ -75,9 +75,9 @@ class FeatureShortcuts extends StatelessWidget {
         crossAxisCount: 2,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.6,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.8,
         children: items.map((item) => _FeatureCard(item: item)).toList(),
       ),
     );

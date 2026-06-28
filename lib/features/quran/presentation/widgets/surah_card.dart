@@ -5,7 +5,7 @@ import '../../../../app/theme/app_fonts.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../data/models/surah_model.dart';
 import '../../providers/quran_providers.dart';
-import '../surah_stub_screen.dart';
+import '../quran_reader_screen.dart';
 
 class SurahCard extends ConsumerWidget {
   const SurahCard({super.key, required this.surah});
@@ -17,10 +17,10 @@ class SurahCard extends ConsumerWidget {
 
     return InkWell(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => SurahStubScreen(surah: surah)),
+        MaterialPageRoute(builder: (_) => QuranReaderScreen(surah: surah)),
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: const BoxDecoration(
           border: Border(
             bottom: BorderSide(color: Color(0x22C9A84C), width: 0.5),
@@ -31,16 +31,44 @@ class SurahCard extends ConsumerWidget {
             _NumberCircle(number: surah.number),
             const SizedBox(width: 12),
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    surah.name,
-                    style: AppTextStyles.heading3.copyWith(
-                        color: AppColors.darkNavBarBackground, fontSize: 16),
-                    textDirection: TextDirection.rtl,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        surah.name,
+                        style: AppTextStyles.heading3.copyWith(
+                            color: AppColors.primaryGreenDark, fontSize: 16),
+                        textDirection: TextDirection.rtl,
+                      ),
+                      Text(
+                        '${surah.numberOfAyahs} آية',
+                        style: const TextStyle(
+                          fontFamily: AppFonts.amiri,
+                          fontSize: 11,
+                          color: AppColors.navInactive,
+                        ),
+                      ),
+                    ],
                   ),
-                  _RevelationBadge(type: surah.revelationType),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _RevelationBadge(type: surah.revelationType),
+                      Text(
+                        surah.englishName,
+                        style: const TextStyle(
+                          fontFamily: AppFonts.amiri,
+                          fontSize: 11,
+                          color: AppColors.navInactive,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

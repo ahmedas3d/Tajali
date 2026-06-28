@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../providers/quran_providers.dart';
+import 'last_read_banner.dart';
 import 'surah_card.dart';
 import 'surah_skeleton_card.dart';
 
@@ -27,9 +28,14 @@ class SurahListView extends ConsumerWidget {
         if (surahs.isEmpty && query.isNotEmpty) {
           return _EmptySearchState(query: query);
         }
+        // Show the last-read banner as the first item only when not searching.
+        final withBanner = query.isEmpty;
         return ListView.builder(
-          itemCount: surahs.length,
-          itemBuilder: (_, i) => SurahCard(surah: surahs[i]),
+          itemCount: surahs.length + (withBanner ? 1 : 0),
+          itemBuilder: (_, i) {
+            if (withBanner && i == 0) return const LastReadBanner();
+            return SurahCard(surah: surahs[withBanner ? i - 1 : i]);
+          },
         );
       },
     );

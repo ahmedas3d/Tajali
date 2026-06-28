@@ -27,6 +27,10 @@ class _NoOpBookmarkService extends BookmarkService {
 
 void main() {
   testWidgets('shows all 30 Juz headers', (tester) async {
+    // Use a very tall surface so that all slivers are built at once.
+    await tester.binding.setSurfaceSize(const Size(400, 30000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -46,6 +50,9 @@ void main() {
   });
 
   testWidgets('shows continuation note for Juz 2 and 5', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 30000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

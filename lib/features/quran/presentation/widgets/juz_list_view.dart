@@ -34,47 +34,35 @@ class JuzListView extends ConsumerWidget {
           (byJuz[juz] ??= []).add(surah);
         }
 
-        final slivers = <Widget>[];
+        final items = <Widget>[];
         for (var j = 1; j <= 30; j++) {
+          if (j > 1) items.add(const SizedBox(height: 12));
+          items.add(_JuzHeader(juzNumber: j));
           final juzSurahs = byJuz[j] ?? [];
-          slivers.add(SliverPersistentHeader(
-            pinned: true,
-            delegate: _JuzHeaderDelegate(juzNumber: j),
-          ));
           if (juzSurahs.isEmpty) {
-            slivers.add(const SliverToBoxAdapter(
-              child: _ContinuationNote(),
-            ));
+            items.add(const _ContinuationNote());
           } else {
-            slivers.add(SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => SurahCard(surah: juzSurahs[i]),
-                childCount: juzSurahs.length,
-              ),
-            ));
+            for (final surah in juzSurahs) {
+              items.add(SurahCard(surah: surah));
+            }
           }
         }
+        items.add(const SizedBox(height: 24));
 
-        return CustomScrollView(slivers: slivers);
+        return ListView(children: items);
       },
     );
   }
 }
 
-class _JuzHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const _JuzHeaderDelegate({required this.juzNumber});
+class _JuzHeader extends StatelessWidget {
+  const _JuzHeader({required this.juzNumber});
   final int juzNumber;
 
   @override
-  double get minExtent => 40;
-
-  @override
-  double get maxExtent => 40;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context) {
     return Container(
+      height: 44,
       color: AppColors.primaryGreen,
       alignment: AlignmentDirectional.centerEnd,
       padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
@@ -82,17 +70,13 @@ class _JuzHeaderDelegate extends SliverPersistentHeaderDelegate {
         'الجزء $juzNumber',
         style: const TextStyle(
           fontFamily: AppFonts.amiri,
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: FontWeight.bold,
           color: AppColors.gold,
         ),
       ),
     );
   }
-
-  @override
-  bool shouldRebuild(covariant _JuzHeaderDelegate oldDelegate) =>
-      juzNumber != oldDelegate.juzNumber;
 }
 
 class _ContinuationNote extends StatelessWidget {
@@ -102,7 +86,7 @@ class _ContinuationNote extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsetsDirectional.only(
-          start: 16, end: 16, top: 8, bottom: 8),
+          start: 16, end: 16, top: 14, bottom: 14),
       child: Text(
         'يتضمن هذا الجزء تتمة السور السابقة',
         style: AppTextStyles.bodySmall.copyWith(color: AppColors.navInactive),

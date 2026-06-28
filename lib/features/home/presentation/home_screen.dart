@@ -6,7 +6,8 @@ import '../../../app/theme/app_fonts.dart';
 import '../../prayer_times/providers/prayer_times_providers.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'widgets/daily_verse_widget.dart';
-import 'widgets/feature_shortcuts.dart';
+import 'widgets/home_adhkar_section.dart';
+import 'widgets/home_quran_section.dart';
 import 'widgets/prayer_hero_card.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -14,7 +15,6 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Activates adhan notification scheduling whenever prayer times load/change.
     ref.watch(adhanSchedulerProvider);
 
     return Scaffold(
@@ -47,21 +47,27 @@ class HomeScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Prayer times hero card
             const PrayerHeroCard(),
             const SizedBox(height: 20),
-            FeatureShortcuts(
-              onQuranTap: () =>
+
+            // Quran last-read continuation
+            HomeQuranSection(
+              onBrowseTap: () =>
                   ref.read(selectedTabProvider.notifier).state = 1,
-              onAdhkarTap: () =>
-                  ref.read(selectedTabProvider.notifier).state = 2,
-              onQiblaTap: () =>
-                  ref.read(selectedTabProvider.notifier).state = 3,
-              onTasbihTap: () =>
-                  ref.read(selectedTabProvider.notifier).state = 2,
             ),
             const SizedBox(height: 20),
+
+            // Daily verse
             const DailyVerseWidget(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            // Adhkar section
+            HomeAdhkarSection(
+              onCategoryTap: () =>
+                  ref.read(selectedTabProvider.notifier).state = 2,
+            ),
+
+            const SizedBox(height: 28),
           ],
         ),
       ),

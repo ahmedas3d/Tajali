@@ -85,12 +85,26 @@ const _methodKey = 'prayer_method_id';
 const _cityNameKey = 'selected_city_name';
 const _cityLatKey = 'selected_city_lat';
 const _cityLonKey = 'selected_city_lon';
+const _notifModeKey = 'adhan_notification_mode';
 
 /// Persisted calculation method (0 = Egyptian default).
 final calculationMethodProvider = StateProvider<int>((ref) => 0);
 
-/// Manually selected city; null means GPS mode.
-final manualCityProvider = StateProvider<ManualCityEntry?>((ref) => null);
+/// Notification mode: fullSound / silent / disabled.
+final notificationModeProvider = StateProvider<AdhanNotificationMode>(
+  (ref) => AdhanNotificationMode.fullSound,
+);
+
+/// Selected city — defaults to Cairo; the user can change it from the prayer
+/// times screen. GPS is never used.
+const _defaultCity = ManualCityEntry(
+  nameAr: 'القاهرة',
+  latitude: 30.0444,
+  longitude: 31.2357,
+);
+
+final manualCityProvider =
+    StateProvider<ManualCityEntry?>((ref) => _defaultCity);
 
 /// Resolves GPS position (or throws [LocationException]).
 final locationProvider = FutureProvider<Position>((ref) async {
@@ -142,6 +156,35 @@ final prayerTimesProvider = FutureProvider<PrayerTimesModel>((ref) async {
 /// Today's Hijri date — fetched from AlAdhan API, cached in Hive.
 final hijriDateProvider = FutureProvider<HijriDateModel>((ref) async {
   return _hijriService.getHijriDate(DateTime.now());
+});
+
+/// Qiyam al-Layl time = last third of the night between Isha and next Fajr.
+/// Calculated locally: Isha + (Fajr_nextDay − Isha) × 2/3.
+final qiyamTimeProvider = FutureProvider<DateTime?>((ref) async {
+  final model = await ref.watch(prayerTimesProvider.future);
+  final now = DateTime.now();
+
+  final todayRaw = _calcService.rawTimes(
+    latitude: model.latitude,
+    longitude: model.longitude,
+    methodId: model.methodId,
+    date: now,
+  );
+
+  final tomorrowRaw = _calcService.rawTimes(
+    latitude: model.latitude,
+    longitude: model.longitude,
+    methodId: model.methodId,
+    date: now.add(const Duration(days: 1)),
+  );
+
+  final isha = todayRaw.isha;
+  final fajrNext = tomorrowRaw.fajr;
+
+  final nightDuration = fajrNext.difference(isha);
+  return isha.add(Duration(
+    seconds: (nightDuration.inSeconds * 2 / 3).round(),
+  ));
 });
 
 /// Name key of the currently active prayer (e.g. 'asr'), or null if none.
@@ -204,46 +247,52 @@ final nextPrayerProvider = StreamProvider<NextPrayerModel>((ref) async* {
     date: DateTime.now(),
   );
 
+  void scheduleRefresh() => Future.microtask(() {
+        ref.invalidate(prayerTimesProvider);
+        ref.invalidate(currentPrayerNameProvider);
+        ref.invalidate(hijriDateProvider);
+      });
+
   // Pure synchronous stream — no await, no gaps.
   yield* Stream.periodic(const Duration(seconds: 1)).map((_) {
     final now = DateTime.now();
+
+    // ── 10-minute elapsed window ────────────────────────────────────────
+    // After a prayer time passes, show "مضى على الأذان" for up to 10 minutes
+    // before switching to the next prayer countdown.
+    final current = rawTimes.currentPrayer();
+    if (current != Prayer.none) {
+      final currentDt = rawTimes.timeForPrayer(current);
+      if (currentDt != null) {
+        final elapsed = now.difference(currentDt);
+        if (elapsed.inMinutes < 10) {
+          return NextPrayerModel(
+            name: current.name,
+            nameAr: _prayerNameAr(current),
+            scheduledTime: _formatTime(model, current),
+            remaining: Duration.zero,
+            elapsed: elapsed,
+          );
+        }
+      }
+    }
+
+    // ── Normal countdown to next prayer ────────────────────────────────
     final next = rawTimes.nextPrayer();
     final dt = rawTimes.timeForPrayer(next);
 
-    // Helper: build an elapsed model using the current (just-completed) prayer.
-    NextPrayerModel? buildElapsedModel() {
-      final current = rawTimes.currentPrayer();
-      if (current == Prayer.none) return null;
-      final currentDt = rawTimes.timeForPrayer(current);
-      if (currentDt == null) return null;
-      return NextPrayerModel(
-        name: current.name,
-        nameAr: _prayerNameAr(current),
-        scheduledTime: _formatTime(model, current),
-        remaining: Duration.zero,
-        elapsed: now.difference(currentDt),
-      );
-    }
-
-    void scheduleRefresh() => Future.microtask(() {
-          ref.invalidate(prayerTimesProvider);
-          ref.invalidate(currentPrayerNameProvider);
-          ref.invalidate(hijriDateProvider);
-        });
-
-    // No upcoming prayer today (after Isha) — must schedule invalidation
-    // or the stream will silently emit null forever.
     if (dt == null) {
+      // After Isha and past the 10-minute window — load tomorrow's times.
       scheduleRefresh();
-      return buildElapsedModel();
+      return null;
     }
 
     final remaining = dt.difference(now);
     if (remaining.isNegative) {
-      // Prayer just passed — refresh times in a microtask so the stream
-      // tick completes synchronously first (no gap on the current frame).
+      // Transient gap at transition — should be subsumed by the elapsed
+      // window above, but guard here just in case.
       scheduleRefresh();
-      return buildElapsedModel();
+      return null;
     }
 
     return NextPrayerModel(
@@ -297,10 +346,13 @@ String _formatTime(PrayerTimesModel m, Prayer prayer) {
 
 // ── Adhan notification scheduler ────────────────────────────────────────────
 
-/// Watches [prayerTimesProvider] and reschedules adhan notifications
-/// whenever prayer times load or change (city / method switch).
+/// Watches prayer times, qiyam time, and notification mode, then reschedules
+/// adhan notifications whenever any of them changes.
 final adhanSchedulerProvider = Provider<void>((ref) {
   final timesAsync = ref.watch(prayerTimesProvider);
+  final qiyamAsync = ref.watch(qiyamTimeProvider);
+  final mode = ref.watch(notificationModeProvider);
+
   timesAsync.whenData((model) {
     final raw = _calcService.rawTimes(
       latitude: model.latitude,
@@ -315,8 +367,9 @@ final adhanSchedulerProvider = Provider<void>((ref) {
       asr:     raw.asr,
       maghrib: raw.maghrib,
       isha:    raw.isha,
+      qiyam:   qiyamAsync.valueOrNull,
     );
-    AdhanNotificationService.schedulePrayerNotifications(entries);
+    AdhanNotificationService.schedulePrayerNotifications(entries, mode);
   });
 });
 
@@ -332,12 +385,12 @@ Future<void> saveMethodId(int id) async {
   await prefs.setInt(_methodKey, id);
 }
 
-Future<ManualCityEntry?> loadSavedCity() async {
+Future<ManualCityEntry> loadSavedCity() async {
   final prefs = await SharedPreferences.getInstance();
   final name = prefs.getString(_cityNameKey);
   final lat = prefs.getDouble(_cityLatKey);
   final lon = prefs.getDouble(_cityLonKey);
-  if (name == null || lat == null || lon == null) return null;
+  if (name == null || lat == null || lon == null) return _defaultCity;
   return ManualCityEntry(nameAr: name, latitude: lat, longitude: lon);
 }
 
@@ -346,4 +399,15 @@ Future<void> saveCity(ManualCityEntry city) async {
   await prefs.setString(_cityNameKey, city.nameAr);
   await prefs.setDouble(_cityLatKey, city.latitude);
   await prefs.setDouble(_cityLonKey, city.longitude);
+}
+
+Future<AdhanNotificationMode> loadSavedNotificationMode() async {
+  final prefs = await SharedPreferences.getInstance();
+  final idx = prefs.getInt(_notifModeKey) ?? 0;
+  return AdhanNotificationMode.values[idx.clamp(0, 2)];
+}
+
+Future<void> saveNotificationMode(AdhanNotificationMode mode) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_notifModeKey, mode.index);
 }

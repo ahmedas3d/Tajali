@@ -10,21 +10,37 @@ class LastReadPosition {
   const LastReadPosition({
     required this.surahNumber,
     required this.ayahNumber,
+    this.scrollOffset,
   });
   final int surahNumber;
   final int ayahNumber;
+  final double? scrollOffset;
 }
 
-// ── Diacritic Normalisation ──────────────────────────────────────────────
+// ── Diacritic Normalisation ──────────────────────────────────────────────────
 
-// U+0610–U+061A: Arabic extended signs; U+064B–U+065F: tashkeel diacritics.
-// These two ranges deliberately skip U+0621–U+064A (Arabic base letters).
-final _diacriticRe = RegExp('[ؐ-ًؚ-ٟ]');
-// Alef wasla (U+0671) and hamza-bearing alefs → plain alef (U+0627)
-final _alefRe = RegExp('[ٱأإآ]');
+// Returns true for Arabic diacritical marks that should be stripped.
+// U+0610–U+061A: Arabic extended signs (not letters).
+// U+064B–U+065F: tashkeel (fatha, damma, kasra, shadda, sukun …).
+// Base Arabic letters (U+0621–U+063A, U+0641–U+064A) are outside both ranges.
+bool _isDiacritic(int cp) =>
+    (cp >= 0x0610 && cp <= 0x061A) || (cp >= 0x064B && cp <= 0x065F);
 
-String normaliseArabic(String s) =>
-    s.replaceAll(_diacriticRe, '').replaceAll(_alefRe, 'ا');
+// Alef variants → plain alef (U+0627):
+//   U+0671 alef wasla, U+0623 alef+hamza above, U+0625 alef+hamza below,
+//   U+0622 alef+madda above.
+int _normaliseAlef(int cp) =>
+    (cp == 0x0671 || cp == 0x0623 || cp == 0x0625 || cp == 0x0622)
+        ? 0x0627
+        : cp;
+
+String normaliseArabic(String s) {
+  final buf = StringBuffer();
+  for (final cp in s.runes) {
+    if (!_isDiacritic(cp)) buf.writeCharCode(_normaliseAlef(cp));
+  }
+  return buf.toString();
+}
 
 // ── Singleton Services ───────────────────────────────────────────────────────
 
@@ -94,10 +110,24 @@ final bookmarkedSurahsProvider = Provider<List<SurahModel>>((ref) {
     ..sort((a, b) => a.number.compareTo(b.number));
 });
 
-// ── Last Read (read-only in Phase 2) ─────────────────────────────────────────
+// ── Last Read ─────────────────────────────────────────────────────────────────
 
 const _kLastReadSurah = 'quran_last_read_surah';
 const _kLastReadAyah = 'quran_last_read_ayah';
+const _kLastReadOffset = 'quran_last_read_offset';
+
+Future<void> writeLastRead(
+  int surahNumber,
+  int ayahNumber, {
+  double? scrollOffset,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_kLastReadSurah, surahNumber);
+  await prefs.setInt(_kLastReadAyah, ayahNumber);
+  if (scrollOffset != null) {
+    await prefs.setDouble(_kLastReadOffset, scrollOffset);
+  }
+}
 
 final lastReadProvider = FutureProvider<LastReadPosition?>((ref) async {
   try {
@@ -105,7 +135,12 @@ final lastReadProvider = FutureProvider<LastReadPosition?>((ref) async {
     final surah = prefs.getInt(_kLastReadSurah);
     final ayah = prefs.getInt(_kLastReadAyah);
     if (surah == null || ayah == null || surah <= 0 || ayah <= 0) return null;
-    return LastReadPosition(surahNumber: surah, ayahNumber: ayah);
+    final offset = prefs.getDouble(_kLastReadOffset);
+    return LastReadPosition(
+      surahNumber: surah,
+      ayahNumber: ayah,
+      scrollOffset: offset,
+    );
   } catch (_) {
     return null;
   }

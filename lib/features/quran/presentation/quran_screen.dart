@@ -6,7 +6,6 @@ import '../../../app/theme/app_text_styles.dart';
 import '../providers/quran_providers.dart';
 import 'widgets/bookmarks_view.dart';
 import 'widgets/juz_list_view.dart';
-import 'widgets/last_read_banner.dart';
 import 'widgets/quran_search_bar.dart';
 import 'widgets/surah_list_view.dart';
 
@@ -80,7 +79,6 @@ class _QuranScreenState extends ConsumerState<QuranScreen>
       ),
       body: Column(
         children: [
-          const LastReadBanner(),
           if (activeTab == 0) const QuranSearchBar(),
           Expanded(
             child: TabBarView(
