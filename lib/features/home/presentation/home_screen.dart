@@ -4,6 +4,7 @@ import '../../../app/routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_fonts.dart';
 import '../../prayer_times/providers/prayer_times_providers.dart';
+import '../../adhkar/presentation/dhikr_detail_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'widgets/daily_verse_widget.dart';
 import 'widgets/home_adhkar_section.dart';
@@ -63,7 +64,18 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             // Adhkar section
             HomeAdhkarSection(
-              onCategoryTap: () =>
+              onCategoryTap: (categoryId, categoryName) =>
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DhikrDetailScreen(
+                        categoryId: categoryId,
+                        categoryName: categoryName,
+                        initialIndex: 0,
+                      ),
+                    ),
+                  ),
+              onViewAll: () =>
                   ref.read(selectedTabProvider.notifier).state = 2,
             ),
 

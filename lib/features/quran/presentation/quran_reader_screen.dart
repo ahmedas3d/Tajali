@@ -43,6 +43,7 @@ class _QuranReaderScreenState extends ConsumerState<QuranReaderScreen> {
   bool _isRepeat = false;
   int _visibleAyahNumber = 1;
   Timer? _saveDebounce;
+  bool _positionRestored = false;
 
   static const _kPosPrefixKey = 'reader_pos_';
 
@@ -63,7 +64,6 @@ class _QuranReaderScreenState extends ConsumerState<QuranReaderScreen> {
       if (mounted) setState(() => _playingIndex = idx);
     });
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _restorePosition());
   }
 
   @override
@@ -194,9 +194,14 @@ class _QuranReaderScreenState extends ConsumerState<QuranReaderScreen> {
     ref.invalidate(surahAyahsProvider(args));
     if (_playingIndex != null && _audioService.playing) {
       final wasIndex = _playingIndex!;
-      await _audioService.stop();
-      final updated = await ref.read(surahAyahsProvider(args).future);
-      await _audioService.play(updated, startIndex: wasIndex);
+      try {
+        await _audioService.stop();
+        final updated = await ref.read(surahAyahsProvider(args).future);
+        await _audioService.play(updated, startIndex: wasIndex);
+      } catch (_) {
+        // just_audio can throw a platform race condition during reciter switch;
+        // the player recovers on the next tap.
+      }
     }
   }
 
@@ -363,7 +368,10 @@ class _QuranReaderScreenState extends ConsumerState<QuranReaderScreen> {
 
   // ── Continuous Mushaf text ────────────────────────────────────────────────────
 
-  static const _basmala = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
+  // Exact codepoint sequence as returned by the quran-uthmani API edition.
+  // shadda (0x651) precedes fatha (0x64e) in "اللَّهِ" — differs from common
+  // copy-paste variants where the order is reversed, causing startsWith to fail.
+  static const _basmala = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
 
   // Strip the basmala from the first ayah's text when we already render it
   // as a standalone decorative widget above, to avoid it appearing twice.
@@ -531,7 +539,13 @@ class _QuranReaderScreenState extends ConsumerState<QuranReaderScreen> {
                   ],
                 ),
               ),
-              data: (ayahs) => NotificationListener<ScrollNotification>(
+              data: (ayahs) {
+                if (!_positionRestored) {
+                  _positionRestored = true;
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((_) => _restorePosition());
+                }
+                return NotificationListener<ScrollNotification>(
                 onNotification: (n) {
                   if (n is ScrollEndNotification) _savePosition();
                   return false;
@@ -547,9 +561,10 @@ class _QuranReaderScreenState extends ConsumerState<QuranReaderScreen> {
                     ],
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
+        ),
           ayahsAsync.maybeWhen(
             data: (ayahs) => AudioPlayerBar(
               audioService: _audioService,

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:adhan/adhan.dart' show Prayer;
+import 'package:adhan/adhan.dart' show Prayer, Madhab;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,6 +86,12 @@ const _cityNameKey = 'selected_city_name';
 const _cityLatKey = 'selected_city_lat';
 const _cityLonKey = 'selected_city_lon';
 const _notifModeKey = 'adhan_notification_mode';
+const _adhanSoundKey = 'adhan_sound_source';
+const _fiqhSchoolKey = 'fiqh_school';
+const _prayerNotifPrefix = 'prayer_notif_';
+
+/// Fiqh school for Asr time calculation.
+enum FiqhSchool { shafii, hanafi }
 
 /// Persisted calculation method (0 = Egyptian default).
 final calculationMethodProvider = StateProvider<int>((ref) => 0);
@@ -94,6 +100,21 @@ final calculationMethodProvider = StateProvider<int>((ref) => 0);
 final notificationModeProvider = StateProvider<AdhanNotificationMode>(
   (ref) => AdhanNotificationMode.fullSound,
 );
+
+/// Adhan sound source: makkah / egypt.
+final adhanSoundProvider = StateProvider<AdhanSoundSource>(
+  (ref) => AdhanSoundSource.egypt,
+);
+
+/// Fiqh school affects Asr time (shafii = shadow 1×, hanafi = shadow 2×).
+final fiqhSchoolProvider = StateProvider<FiqhSchool>((ref) => FiqhSchool.shafii);
+
+/// Per-prayer notification toggles — all ON by default.
+final prayerNotifFajrProvider    = StateProvider<bool>((ref) => true);
+final prayerNotifDhuhrProvider   = StateProvider<bool>((ref) => true);
+final prayerNotifAsrProvider     = StateProvider<bool>((ref) => true);
+final prayerNotifMaghribProvider = StateProvider<bool>((ref) => true);
+final prayerNotifIshaProvider    = StateProvider<bool>((ref) => true);
 
 /// Selected city — defaults to Cairo; the user can change it from the prayer
 /// times screen. GPS is never used.
@@ -132,15 +153,26 @@ final locationProvider = FutureProvider<Position>((ref) async {
 /// Today's prayer times — checks cache first, then calculates locally.
 final prayerTimesProvider = FutureProvider<PrayerTimesModel>((ref) async {
   final method = ref.watch(calculationMethodProvider);
+  final school = ref.watch(fiqhSchoolProvider);
   final position = await ref.watch(locationProvider.future);
 
   final now = DateTime.now();
   final key = PrayerCalculationService.buildKey(
       position.latitude, position.longitude, method, now);
 
+  final madhab = school == FiqhSchool.hanafi ? Madhab.hanafi : Madhab.shafi;
+
   final cached = _cacheService.get(key);
   if (cached != null && !_cacheService.isStale(cached.date)) {
-    return cached;
+    // Still recalculate if madhab changed (cache key doesn't include madhab).
+    final recalc = _calcService.calculate(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      methodId: method,
+      date: now,
+      madhab: madhab,
+    );
+    return recalc;
   }
 
   final model = _calcService.calculate(
@@ -148,6 +180,7 @@ final prayerTimesProvider = FutureProvider<PrayerTimesModel>((ref) async {
     longitude: position.longitude,
     methodId: method,
     date: now,
+    madhab: madhab,
   );
   await _cacheService.save(model);
   return model;
@@ -346,30 +379,65 @@ String _formatTime(PrayerTimesModel m, Prayer prayer) {
 
 // ── Adhan notification scheduler ────────────────────────────────────────────
 
-/// Watches prayer times, qiyam time, and notification mode, then reschedules
-/// adhan notifications whenever any of them changes.
+/// Watches prayer times, per-prayer toggles, fiqh school, and sound source,
+/// then reschedules adhan notifications for today + tomorrow on every change.
 final adhanSchedulerProvider = Provider<void>((ref) {
   final timesAsync = ref.watch(prayerTimesProvider);
   final qiyamAsync = ref.watch(qiyamTimeProvider);
-  final mode = ref.watch(notificationModeProvider);
+  final mode      = ref.watch(notificationModeProvider);
+  final sound     = ref.watch(adhanSoundProvider);
+  final school    = ref.watch(fiqhSchoolProvider);
+  final fajrOn    = ref.watch(prayerNotifFajrProvider);
+  final dhuhrOn   = ref.watch(prayerNotifDhuhrProvider);
+  final asrOn     = ref.watch(prayerNotifAsrProvider);
+  final maghribOn = ref.watch(prayerNotifMaghribProvider);
+  final ishaOn    = ref.watch(prayerNotifIshaProvider);
 
   timesAsync.whenData((model) {
-    final raw = _calcService.rawTimes(
+    final madhab = school == FiqhSchool.hanafi ? Madhab.hanafi : Madhab.shafi;
+    final now = DateTime.now();
+
+    final rawToday = _calcService.rawTimes(
       latitude: model.latitude,
       longitude: model.longitude,
       methodId: model.methodId,
-      date: DateTime.now(),
+      date: now,
+      madhab: madhab,
     );
-    final entries = AdhanNotificationService.buildEntries(
-      fajr:    raw.fajr,
-      sunrise: raw.sunrise,
-      dhuhr:   raw.dhuhr,
-      asr:     raw.asr,
-      maghrib: raw.maghrib,
-      isha:    raw.isha,
+    final entriesToday = AdhanNotificationService.buildEntries(
+      fajr:    fajrOn    ? rawToday.fajr    : null,
+      sunrise: rawToday.sunrise,
+      dhuhr:   dhuhrOn   ? rawToday.dhuhr   : null,
+      asr:     asrOn     ? rawToday.asr     : null,
+      maghrib: maghribOn ? rawToday.maghrib : null,
+      isha:    ishaOn    ? rawToday.isha    : null,
       qiyam:   qiyamAsync.valueOrNull,
+      dayOffset: 0,
     );
-    AdhanNotificationService.schedulePrayerNotifications(entries, mode);
+
+    final rawTomorrow = _calcService.rawTimes(
+      latitude: model.latitude,
+      longitude: model.longitude,
+      methodId: model.methodId,
+      date: now.add(const Duration(days: 1)),
+      madhab: madhab,
+    );
+    final entriesTomorrow = AdhanNotificationService.buildEntries(
+      fajr:    fajrOn    ? rawTomorrow.fajr    : null,
+      sunrise: rawTomorrow.sunrise,
+      dhuhr:   dhuhrOn   ? rawTomorrow.dhuhr   : null,
+      asr:     asrOn     ? rawTomorrow.asr     : null,
+      maghrib: maghribOn ? rawTomorrow.maghrib : null,
+      isha:    ishaOn    ? rawTomorrow.isha    : null,
+      qiyam:   null,
+      dayOffset: 1,
+    );
+
+    AdhanNotificationService.schedulePrayerNotifications(
+      [...entriesToday, ...entriesTomorrow],
+      mode,
+      source: sound,
+    );
   });
 });
 
@@ -410,4 +478,36 @@ Future<AdhanNotificationMode> loadSavedNotificationMode() async {
 Future<void> saveNotificationMode(AdhanNotificationMode mode) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setInt(_notifModeKey, mode.index);
+}
+
+Future<AdhanSoundSource> loadSavedAdhanSound() async {
+  final prefs = await SharedPreferences.getInstance();
+  final idx = prefs.getInt(_adhanSoundKey) ?? AdhanSoundSource.egypt.index;
+  return AdhanSoundSource.values[idx.clamp(0, AdhanSoundSource.values.length - 1)];
+}
+
+Future<void> saveAdhanSound(AdhanSoundSource source) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_adhanSoundKey, source.index);
+}
+
+Future<FiqhSchool> loadSavedFiqhSchool() async {
+  final prefs = await SharedPreferences.getInstance();
+  final idx = prefs.getInt(_fiqhSchoolKey) ?? 0;
+  return FiqhSchool.values[idx.clamp(0, FiqhSchool.values.length - 1)];
+}
+
+Future<void> saveFiqhSchool(FiqhSchool school) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_fiqhSchoolKey, school.index);
+}
+
+Future<bool> loadSavedPrayerNotif(String prayerKey) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool('$_prayerNotifPrefix$prayerKey') ?? true;
+}
+
+Future<void> savePrayerNotif(String prayerKey, bool value) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('$_prayerNotifPrefix$prayerKey', value);
 }

@@ -24,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen>
   static const _gold = Color(0xFFC9A84C);
   static const _goldLight = Color(0xFFE8C97A);
   static const _ivory75 = Color(0xBFFFF1E8);
-  static const _ivory50 = Color(0x80FFF1E8);
 
   @override
   void initState() {
@@ -157,34 +156,12 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-              // Spinning loading indicator
+              // Pulsing dot loading indicator
               const Positioned(
                 bottom: 56,
                 left: 0,
                 right: 0,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(
-                        color: _gold,
-                        strokeWidth: 1.5,
-                        backgroundColor: Color(0x28C9A84C),
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    Text(
-                      'جارٍ التحميل...',
-                      style: TextStyle(
-                        fontFamily: 'Amiri',
-                        fontSize: 11,
-                        color: _ivory50,
-                        letterSpacing: 2.5,
-                      ),
-                    ),
-                  ],
-                ),
+                child: _PulsingDots(),
               ),
             ],
           ),
@@ -381,6 +358,68 @@ class _OrnamentalDivider extends StatelessWidget {
           end: end,
           colors: const [Color(0x00C9A84C), Color(0xFFC9A84C)],
         ),
+      ),
+    );
+  }
+}
+
+// ── Pulsing dot loading indicator ────────────────────────────────────────────
+
+class _PulsingDots extends StatefulWidget {
+  const _PulsingDots();
+
+  @override
+  State<_PulsingDots> createState() => _PulsingDotsState();
+}
+
+class _PulsingDotsState extends State<_PulsingDots>
+    with SingleTickerProviderStateMixin {
+  static const _gold = Color(0xFFC9A84C);
+  late AnimationController _ctrl;
+  late List<Animation<double>> _anims;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+
+    _anims = List.generate(3, (i) {
+      final start = i * 0.2;
+      return Tween<double>(begin: 0.25, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _ctrl,
+          curve: Interval(start, start + 0.5, curve: Curves.easeInOut),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(3, (i) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _gold.withValues(alpha: _anims[i].value),
+            ),
+          );
+        }),
       ),
     );
   }

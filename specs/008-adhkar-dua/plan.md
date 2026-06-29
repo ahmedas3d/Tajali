@@ -1,113 +1,126 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Adhkar & Dua (الأذكار والدعاء)
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: `008-adhkar-dua` | **Date**: 2026-06-28 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Input**: Feature specification from `specs/008-adhkar-dua/spec.md`
 
-**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+---
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Replace the `AdhkarScreen` placeholder with a fully offline Islamic remembrances feature comprising three screens: a category grid (`AdhkarScreen`), a per-dhikr reading and counting screen (`DhikrDetailScreen`), and a digital tasbih counter (`TasbihScreen`) with session history (`TasbihHistoryScreen`). All content is served from a bundled `assets/data/azkar.json` asset. Counter progress and tasbih session state are persisted in Hive so they survive app restarts and reset automatically at midnight.
+
+---
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Dart 3.3 / Flutter 3.19+
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Primary Dependencies**:
+- `hive_flutter ^1.1.0` (already in pubspec) — tasbih session + history persistence
+- `shared_preferences ^2.2.3` (already in pubspec) — sound/vibration toggles, custom tasbih targets
+- `just_audio ^0.9.38` (already in pubspec) — tasbih tap sound + round-completion sound
+- `vibration ^2.0.0` (already in pubspec) — tasbih haptic feedback
+- `flutter_riverpod ^2.5.1` (already in pubspec) — state management
+- `flutter_svg ^2.0.10+1` (already in pubspec) — category icons
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Storage**:
+- `dhikrCounterBox` — `Box<int>`, primitive Hive box; keys: `$dateISO_$categoryId_$dhikrIndex` (e.g., `2026-06-28_morning_3`); value = remaining repetitions
+- `tasbihSessionBox` — `Box<TasbihSessionModel>` (Hive typeId: 15); single entry `current`; restored on app restart
+- `tasbihHistoryBox` — `Box<TasbihHistoryEntry>` (Hive typeId: 16); one entry per logged session
+- SharedPreferences keys: `tasbih_sound_enabled` (bool), `tasbih_vibration_enabled` (bool), `tasbih_custom_targets` (JSON string of `Map<String, int>`)
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Testing**: `flutter_test` (widget + unit); golden tests for Adhkar screens
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Target Platform**: iOS + Android (existing targets)
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Performance Goals**:
+- Category grid loads in < 1 second (SC-002; all data is bundled)
+- Tasbih counter responds within 100ms per tap (SC-003)
+- Dhikr detail screen renders from in-memory model (< 100ms transition)
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Constraints**:
+- Fully offline — no network calls at any point (FR-023)
+- New Hive typeIds: TasbihSessionModel = 15, TasbihHistoryEntry = 16
+- Daily counter reset uses device local date (midnight in user's timezone), not server time
+- Sound assets bundled at `assets/audio/tasbih_tap.mp3` + `assets/audio/tasbih_complete.mp3`
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Scale/Scope**: 8+ adhkar categories; ~120 individual dhikr entries total; all fits in memory
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+---
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*Constitution file is a placeholder template — no project-specific principles are currently defined. No gates to evaluate.*
 
-[Gates determined based on constitution file]
+---
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+specs/008-adhkar-dua/
+├── plan.md              ← this file
+├── research.md          ← JSON source, counter keying, audio, daily reset strategy
+├── data-model.md        ← AdhkarCategoryModel, DhikrModel, TasbihSessionModel, TasbihHistoryEntry
+├── quickstart.md        ← validation scenarios
+└── tasks.md             ← generated by /speckit-tasks
 ```
 
-### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
+### Source Code Layout
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
+lib/features/adhkar/
+├── data/
 │   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
+│   │   ├── adhkar_category_model.dart       # pure Dart; parsed from azkar.json
+│   │   ├── dhikr_model.dart                 # pure Dart; parsed from azkar.json
+│   │   ├── tasbih_session_model.dart        # Hive typeId: 15
+│   │   ├── tasbih_session_model.g.dart      # generated
+│   │   ├── tasbih_history_entry.dart        # Hive typeId: 16
+│   │   └── tasbih_history_entry.g.dart      # generated
 │   └── services/
-└── tests/
+│       ├── adhkar_service.dart              # loads + parses azkar.json from rootBundle
+│       ├── dhikr_counter_service.dart       # daily counter CRUD on dhikrCounterBox
+│       ├── tasbih_service.dart              # tasbih session + history CRUD
+│       └── tasbih_audio_service.dart        # just_audio wrapper for tap/complete sounds
+├── presentation/
+│   ├── adhkar_screen.dart                   # replaces stub — category grid
+│   ├── dhikr_detail_screen.dart             # per-dhikr reader + counter
+│   ├── tasbih_screen.dart                   # digital tasbih counter
+│   ├── tasbih_history_screen.dart           # session history list
+│   └── widgets/
+│       ├── adhkar_category_card.dart        # grid card with completion badge
+│       ├── dhikr_counter_widget.dart        # circular tap counter
+│       ├── dhikr_nav_bar.dart               # next/previous nav row
+│       ├── tasbih_bead_arc.dart             # semicircular bead visualization
+│       └── tasbih_dhikr_selector.dart       # dhikr type tab row
+└── providers/
+    └── adhkar_providers.dart                # all Riverpod providers for this feature
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
+assets/
+├── data/
+│   └── azkar.json                           # bundled adhkar dataset (download once)
+└── audio/
+    ├── tasbih_tap.mp3                       # short click sound (~50ms)
+    └── tasbih_complete.mp3                  # round-completion tone (~500ms)
 
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+test/
+├── unit/
+│   ├── adhkar_service_test.dart             # JSON parsing, category filtering
+│   ├── dhikr_counter_service_test.dart      # counter CRUD, midnight reset logic
+│   └── tasbih_service_test.dart             # round completion, history save
+└── widget/
+    ├── adhkar_screen_test.dart
+    ├── dhikr_detail_screen_test.dart
+    └── tasbih_screen_test.dart
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Single feature module under `lib/features/adhkar/` — consistent with all other features in the project (quran, prayer_times, etc.). No separate packages or backend needed; fully offline.
+
+---
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+> No constitution violations.

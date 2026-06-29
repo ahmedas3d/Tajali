@@ -165,6 +165,7 @@ class AudioPlayerBar extends ConsumerWidget {
   void _showReciterPicker(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: AppColors.primaryGreenDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

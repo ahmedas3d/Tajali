@@ -4,11 +4,13 @@ import '../../../../app/theme/app_fonts.dart';
 
 class _AdhkarCategory {
   const _AdhkarCategory({
+    required this.categoryId,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.color,
   });
+  final String categoryId;
   final String title;
   final String subtitle;
   final IconData icon;
@@ -17,24 +19,28 @@ class _AdhkarCategory {
 
 const _categories = [
   _AdhkarCategory(
+    categoryId: 'morning',
     title: 'أذكار الصباح',
     subtitle: 'ابدأ يومك بذكر الله',
     icon: Icons.wb_sunny_outlined,
     color: Color(0xFFF59E0B),
   ),
   _AdhkarCategory(
+    categoryId: 'evening',
     title: 'أذكار المساء',
     subtitle: 'أختم يومك بذكر الله',
     icon: Icons.nights_stay_outlined,
     color: Color(0xFF6366F1),
   ),
   _AdhkarCategory(
+    categoryId: 'after_prayer',
     title: 'بعد الصلاة',
     subtitle: 'أذكار تعقيب الصلوات',
     icon: Icons.mosque_outlined,
     color: Color(0xFF10B981),
   ),
   _AdhkarCategory(
+    categoryId: 'sleep',
     title: 'أذكار النوم',
     subtitle: 'سُنّة قبل النوم',
     icon: Icons.bedtime_outlined,
@@ -42,11 +48,15 @@ const _categories = [
   ),
 ];
 
-
 class HomeAdhkarSection extends StatelessWidget {
-  const HomeAdhkarSection({super.key, required this.onCategoryTap});
+  const HomeAdhkarSection({
+    super.key,
+    required this.onCategoryTap,
+    required this.onViewAll,
+  });
 
-  final VoidCallback onCategoryTap;
+  final void Function(String categoryId, String categoryName) onCategoryTap;
+  final VoidCallback onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +79,7 @@ class HomeAdhkarSection extends StatelessWidget {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: onCategoryTap,
+                onTap: onViewAll,
                 child: const Text(
                   'عرض الكل',
                   style: TextStyle(
@@ -95,7 +105,10 @@ class HomeAdhkarSection extends StatelessWidget {
             crossAxisSpacing: 8,
             childAspectRatio: 2.4,
             children: _categories
-                .map((c) => _CategoryCard(category: c, onTap: onCategoryTap))
+                .map((c) => _CategoryCard(
+                      category: c,
+                      onTap: () => onCategoryTap(c.categoryId, c.title),
+                    ))
                 .toList(),
           ),
         ),

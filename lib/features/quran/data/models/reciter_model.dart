@@ -16,9 +16,39 @@ class ReciterModel {
       nameEn: 'Mishary Alafasy',
     ),
     ReciterModel(
+      identifier: 'ar.husary',
+      nameAr: 'محمود خليل الحصري',
+      nameEn: 'Mahmoud Khalil Al-Husary',
+    ),
+    ReciterModel(
+      identifier: 'ar.mahermuaiqly',
+      nameAr: 'ماهر المعيقلي',
+      nameEn: 'Maher Al Muaiqly',
+    ),
+    ReciterModel(
+      identifier: 'ar.abdurrahmaansudais',
+      nameAr: 'عبدالرحمن السديس',
+      nameEn: 'Abdurrahmaan As-Sudais',
+    ),
+    ReciterModel(
+      identifier: 'ar.saoodshuraym',
+      nameAr: 'سعود الشريم',
+      nameEn: 'Saood Ash-Shuraym',
+    ),
+    ReciterModel(
       identifier: 'ar.abdulsamad',
-      nameAr: 'عبد الصمد',
+      nameAr: 'عبدالباسط عبدالصمد',
       nameEn: 'Abdul Samad',
+    ),
+    ReciterModel(
+      identifier: 'ar.shaatree',
+      nameAr: 'أبو بكر الشاطري',
+      nameEn: 'Abu Bakr Ash-Shaatree',
+    ),
+    ReciterModel(
+      identifier: 'ar.muhammadayyoub',
+      nameAr: 'محمد أيوب',
+      nameEn: 'Muhammad Ayyoub',
     ),
     ReciterModel(
       identifier: 'ar.abdullahbasfar',
@@ -29,6 +59,11 @@ class ReciterModel {
       identifier: 'ar.hudhaify',
       nameAr: 'علي الحذيفي',
       nameEn: 'Ali Hudhaify',
+    ),
+    ReciterModel(
+      identifier: 'ar.hanirifai',
+      nameAr: 'هاني الرفاعي',
+      nameEn: 'Hani Rifai',
     ),
   ];
 

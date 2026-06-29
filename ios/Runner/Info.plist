@@ -49,6 +49,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>يستخدم تجلّي موقعك لحساب اتجاه القبلة وأوقات الصلاة</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>يستخدم تجلّي موقعك لحساب اتجاه القبلة وأوقات الصلاة</string>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
 	<key>UILaunchStoryboardName</key>

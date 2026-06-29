@@ -27,6 +27,7 @@ dependencies:
   geolocator: ^11.0.0
   flutter_compass: ^0.8.0
   permission_handler: ^11.3.1
+  geocoding: ^3.0.0
 
   # Prayer Times
   adhan: ^2.0.0+1
@@ -42,6 +43,9 @@ dependencies:
   # UI Extras
   flutter_svg: ^2.0.10+1
   vibration: ^2.0.0
+  url_launcher: ^6.2.6
+  share_plus: ^10.0.0
+  package_info_plus: ^8.0.2
 
 dev_dependencies:
   flutter_test:

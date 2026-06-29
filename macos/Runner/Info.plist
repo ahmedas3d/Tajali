@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocationUsageDescription</key>
+	<string>يستخدم تجلّي موقعك لحساب اتجاه القبلة وأوقات الصلاة</string>
 </dict>
 </plist>

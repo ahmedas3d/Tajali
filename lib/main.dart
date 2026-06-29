@@ -11,6 +11,10 @@ import 'features/prayer_times/providers/prayer_times_providers.dart';
 import 'features/quran/data/models/ayah_bookmark.dart';
 import 'features/quran/data/models/ayah_model.dart';
 import 'features/quran/data/models/surah_model.dart';
+import 'features/adhkar/data/models/tasbih_history_entry.dart';
+import 'features/adhkar/data/models/tasbih_session_model.dart';
+import 'features/adhkar/data/services/dhikr_counter_service.dart';
+import 'features/adhkar/data/services/tasbih_service.dart';
 import 'features/quran/data/services/bookmark_service.dart';
 import 'features/quran/data/services/quran_service.dart';
 import 'shared/local_storage/storage_service.dart';
@@ -31,16 +35,28 @@ void main() async {
   Hive.registerAdapter(SurahModelAdapter());
   Hive.registerAdapter(AyahModelAdapter());
   Hive.registerAdapter(AyahBookmarkAdapter());
+  Hive.registerAdapter(TasbihSessionModelAdapter());
+  Hive.registerAdapter(TasbihHistoryEntryAdapter());
   await Hive.openBox<PrayerTimesModel>(PrayerCacheService.boxName);
   await Hive.openBox<HijriDateModel>(_hijriBoxName);
   await Hive.openBox<SurahModel>(QuranService.boxName);
   await Hive.openBox(BookmarkService.boxName);
   await Hive.openBox('ayahTextBox');
   await Hive.openBox<AyahBookmark>('ayahBookmarksBox');
+  await Hive.openBox<int>(DhikrCounterService.boxName);
+  await Hive.openBox<TasbihSessionModel>(TasbihService.sessionBoxName);
+  await Hive.openBox<TasbihHistoryEntry>(TasbihService.historyBoxName);
 
   final savedMethodId = await loadSavedMethodId();
   final savedCity = await loadSavedCity();
   final savedNotifMode = await loadSavedNotificationMode();
+  final savedAdhanSound = await loadSavedAdhanSound();
+  final savedFiqhSchool = await loadSavedFiqhSchool();
+  final savedNotifFajr = await loadSavedPrayerNotif('fajr');
+  final savedNotifDhuhr = await loadSavedPrayerNotif('dhuhr');
+  final savedNotifAsr = await loadSavedPrayerNotif('asr');
+  final savedNotifMaghrib = await loadSavedPrayerNotif('maghrib');
+  final savedNotifIsha = await loadSavedPrayerNotif('isha');
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -57,6 +73,13 @@ void main() async {
         calculationMethodProvider.overrideWith((ref) => savedMethodId),
         manualCityProvider.overrideWith((ref) => savedCity),
         notificationModeProvider.overrideWith((ref) => savedNotifMode),
+        adhanSoundProvider.overrideWith((ref) => savedAdhanSound),
+        fiqhSchoolProvider.overrideWith((ref) => savedFiqhSchool),
+        prayerNotifFajrProvider.overrideWith((ref) => savedNotifFajr),
+        prayerNotifDhuhrProvider.overrideWith((ref) => savedNotifDhuhr),
+        prayerNotifAsrProvider.overrideWith((ref) => savedNotifAsr),
+        prayerNotifMaghribProvider.overrideWith((ref) => savedNotifMaghrib),
+        prayerNotifIshaProvider.overrideWith((ref) => savedNotifIsha),
       ],
       child: const TajaliApp(),
     ),

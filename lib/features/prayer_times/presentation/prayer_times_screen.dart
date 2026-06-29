@@ -124,7 +124,12 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen>
 
       final mode = ref.read(notificationModeProvider);
       if (mode == AdhanNotificationMode.fullSound) {
-        AdhanAudioService.instance.play(isFajr: model.name == 'fajr');
+        final src = ref.read(adhanSoundProvider);
+        final audioSound = src == AdhanSoundSource.egypt ? AdhanSound.egypt : AdhanSound.makkah;
+        AdhanAudioService.instance.play(
+          isFajr: model.name == 'fajr',
+          sound: audioSound,
+        );
       }
     });
 

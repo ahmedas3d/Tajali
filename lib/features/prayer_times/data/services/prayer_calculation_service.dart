@@ -16,11 +16,13 @@ class PrayerCalculationService {
     required double longitude,
     required int methodId,
     required DateTime date,
+    Madhab madhab = Madhab.shafi,
   }) {
     final coords = Coordinates(latitude, longitude);
     final dateComponents = DateComponents.from(date);
     final method = _methods[methodId] ?? CalculationMethod.egyptian;
     final params = method.getParameters();
+    params.madhab = madhab;
 
     final times = PrayerTimes(coords, dateComponents, params);
 
@@ -50,11 +52,14 @@ class PrayerCalculationService {
     required double longitude,
     required int methodId,
     required DateTime date,
+    Madhab madhab = Madhab.shafi,
   }) {
     final coords = Coordinates(latitude, longitude);
     final dateComponents = DateComponents.from(date);
     final method = _methods[methodId] ?? CalculationMethod.egyptian;
-    return PrayerTimes(coords, dateComponents, method.getParameters());
+    final params = method.getParameters();
+    params.madhab = madhab;
+    return PrayerTimes(coords, dateComponents, params);
   }
 
   static String buildKey(double lat, double lon, int methodId, DateTime date) {
